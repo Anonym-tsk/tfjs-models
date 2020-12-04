@@ -535,6 +535,46 @@ export function drawBokehEffect(
   ctx.restore();
 }
 
+export function drawBackground(
+    canvas: HTMLCanvasElement, image: ImageType,
+    multiPersonSegmentation: SemanticPersonSegmentation|PersonSegmentation[],
+    backgroundImage: ImageType, edgeBlurAmount = 3, flipHorizontal = false) {
+
+  const [height, width] = getInputSize(image);
+  canvas.width = width;
+  canvas.height = height;
+
+  assertSameDimensions({width, height}, backgroundImage, 'image', 'background');
+  const ctx = canvas.getContext('2d');
+
+  if (Array.isArray(multiPersonSegmentation) &&
+      multiPersonSegmentation.length === 0) {
+    ctx.drawImage(backgroundImage, 0, 0);
+    return;
+  }
+
+  const personMask = createPersonMask(multiPersonSegmentation, edgeBlurAmount);
+
+  ctx.save();
+  if (flipHorizontal) {
+    flipCanvasHorizontal(canvas);
+  }
+  ctx.drawImage(image, 0, 0, width, height);
+
+  // "destination-in" - "The existing canvas content is kept where both the
+  // new shape and existing canvas content overlap. Everything else is made
+  // transparent."
+  // crop what's not the person using the mask from the original image
+  drawWithCompositing(ctx, personMask, 'destination-in');
+  // "destination-over" - "The existing canvas content is kept where both the
+  // new shape and existing canvas content overlap. Everything else is made
+  // transparent."
+  // draw the blurred background on top of the original image where it doesn't
+  // overlap.
+  drawWithCompositing(ctx, backgroundImage, 'destination-over');
+  ctx.restore();
+}
+
 function createBodyPartMask(
     multiPersonPartSegmentation: SemanticPartSegmentation|PartSegmentation[],
     bodyPartIdsToMask: number[], edgeBlurAmount: number): HTMLCanvasElement {
