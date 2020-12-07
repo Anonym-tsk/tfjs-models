@@ -241,12 +241,14 @@ export function toMask(
           bytes[4 * n + 1] = foreground.g;
           bytes[4 * n + 2] = foreground.b;
           bytes[4 * n + 3] = foreground.a;
-          const isBoundary = isSegmentationBoundary(
-              multiPersonOrPartSegmentation[k].data, i, j, width,
-              foregroundIds);
           if (drawContour && i - 1 >= 0 && i + 1 < height && j - 1 >= 0 &&
-              j + 1 < width && isBoundary) {
-            drawStroke(bytes, i, j, width, 1);
+              j + 1 < width) {
+            const isBoundary = isSegmentationBoundary(
+                multiPersonOrPartSegmentation[k].data, i, j, width,
+                foregroundIds);
+            if (isBoundary) {
+              drawStroke(bytes, i, j, width, 1);
+            }
           }
         }
       }
