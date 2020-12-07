@@ -532,6 +532,9 @@ export function drawBokehEffect(
   // draw the blurred background on top of the original image where it doesn't
   // overlap.
   drawWithCompositing(ctx, blurredImage, 'destination-over');
+  // To fix transparent edges (blur filter side-effect)
+  // render original frame behind the existing canvas content
+  drawWithCompositing(ctx, image, 'destination-over');
   ctx.restore();
 }
 
